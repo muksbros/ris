@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Requisition and Issue Slip – DepEd Zamboanga City</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,wght@0,300;0,400;0,600;1,400&family=IBM+Plex+Mono:wght@400;600&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --blue: #003087;
+    --gold: #c8961e;
+    --light: #f5f3ee;
+    --border: #2a2a2a;
+    --text: #1a1a1a;
+  }
+
+  body {
+    font-family: 'Source Serif 4', Georgia, serif;
+    background: #e8e4dc;
+    color: var(--text);
+    min-height: 100vh;
+    padding: 20px;
+  }
+
+  /* ── SCREEN CONTROLS ── */
+  @media print { .screen-only { display: none !important; } }
+
+  .controls {
+    max-width: 960px;
+    margin: 0 auto 18px;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    flex-wrap: wrap;
+    background: white;
+    border: 2px solid var(--blue);
+    border-radius: 6px;
+    padding: 16px 20px;
+  }
+
+  .controls-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    width: 100%;
+  }
+
+  .controls label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--blue);
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  #schoolSelect {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    padding: 7px 12px;
+    border: 2px solid var(--blue);
+    border-radius: 4px;
+    background: white;
+    color: var(--text);
+    cursor: pointer;
+    flex: 1;
+    min-width: 220px;
+  }
+
+  .input-field {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    padding: 7px 12px;
+    border: 2px solid var(--blue);
+    border-radius: 4px;
+    background: white;
+    color: var(--text);
+    width: 160px;
+  }
+
+  .qty-input {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    padding: 7px 12px;
+    border: 2px solid var(--gold);
+    border-radius: 4px;
+    background: white;
+    color: var(--text);
+    width: 120px;
+  }
+
+  .btn {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    padding: 9px 18px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: opacity .15s;
+    white-space: nowrap;
+  }
+  .btn:hover { opacity: .85; }
+  .btn-print  { background: var(--blue); color: white; }
+  .btn-apply  { background: var(--gold); color: white; }
+  .btn-all    { background: #555; color: white; }
+
+  .divider {
+    width: 100%;
+    border: none;
+    border-top: 1px solid #ddd;
+    margin: 6px 0;
+  }
+
+  /* ── A4 WRAPPER ── */
+  .ris-wrapper {
+    max-width: 960px;
+    margin: 0 auto;
+  }
+
+  .ris {
+    background: white;
+    border: 1px solid #bbb;
+    box-shadow: 0 2px 8px rgba(0,0,0,.12);
+    width: 794px;
+    min-height: 1123px;
+    margin: 0 auto 32px;
+    padding: 14mm 15mm 12mm;
+    page-break-after: always;
+    break-after: page;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .appendix {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: .1em;
+    color: #888;
+    text-align: right;
+    margin-bottom: 4px;
+    text-transform: uppercase;
+  }
+
+  .ris-title {
+    text-align: center;
+    border-top: 3px solid var(--blue);
+    border-bottom: 3px solid var(--blue);
+    padding: 9px 0;
+    margin-bottom: 12px;
+  }
+  .ris-title h1 {
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--blue);
+  }
+
+  /* Header fields */
+  .header-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    border: 1px solid var(--border);
+    margin-bottom: 0;
+  }
+  .hcell {
+    border: 1px solid var(--border);
+    padding: 6px 10px;
+    font-size: 11px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    flex-wrap: wrap;
+  }
+  .hcell .field-label {
+    font-weight: 700;
+    font-size: 11px;
+    white-space: nowrap;
+  }
+  .hcell.full { grid-column: 1 / -1; }
+
+  /* Editable inline inputs */
+  .ris-input {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    border: none;
+    border-bottom: 1px solid #999;
+    outline: none;
+    background: transparent;
+    color: var(--text);
+    min-width: 60px;
+    flex: 1;
+    padding: 0 2px;
+  }
+  .ris-input:focus {
+    border-bottom-color: var(--blue);
+    background: #f0f4ff;
+  }
+  @media print {
+    .ris-input {
+      border-bottom: 1px solid #999;
+      background: transparent !important;
+    }
+  }
+
+  /* Main table */
+  .main-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 11px;
+    margin-top: 0;
+    flex: 1;
+  }
+  .main-table th, .main-table td {
+    border: 1px solid var(--border);
+    padding: 5px 7px;
+    vertical-align: middle;
+  }
+
+  /* Header row 1: REQUISITION | Still Available? | ISSUE labels */
+  .main-table thead tr:first-child th {
+    background: var(--blue);
+    color: white;
+    text-align: center;
+    font-size: 11px;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    font-weight: 700;
+    padding: 6px 7px;
+  }
+  /* Still Available header cell */
+  .still-available-header {
+    background: #d0ddf5 !important;
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    color: var(--blue) !important;
+    white-space: nowrap;
+  }
+
+  /* Header row 2: column names */
+  .main-table thead tr:last-child th {
+    background: #dce4f0;
+    text-align: center;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 4px 6px;
+  }
+
+  .main-table tbody td { font-size: 11px; }
+  .main-table td.center { text-align: center; }
+  .main-table td.desc { font-size: 11px; line-height: 1.55; vertical-align: top; }
+
+  /* Editable td inputs */
+  .td-input {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    border: none;
+    outline: none;
+    background: transparent;
+    color: var(--text);
+    width: 100%;
+    text-align: center;
+    padding: 0;
+  }
+  .td-input:focus { background: #f0f4ff; }
+  .desc-content {
+    font-family: 'Source Serif 4', serif;
+    font-size: 11px;
+    line-height: 1.55;
+    text-align: left;
+    width: 100%;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .td-input.desc-input {
+    text-align: left;
+    resize: none;
+    width: 100%;
+    height: 100%;
+    min-height: 80px;
+    font-family: 'Source Serif 4', serif;
+    font-size: 11px;
+    line-height: 1.55;
+  }
+  .purpose-text {
+    flex: 1;
+    font-size: 11px;
+    font-weight: 700;
+    text-align: center;
+    line-height: 1.6;
+    font-style: italic;
+    word-break: break-word;
+    padding: 2px 4px;
+  }
+  @media print {
+    .td-input { background: transparent !important; }
+    .td-input.desc-input { background: transparent !important; }
+  }
+
+  .check-cell {
+    text-align: center;
+    font-size: 16px;
+    color: var(--blue);
+    font-weight: 700;
+  }
+
+  /* Yes/No radio-style */
+  .yes-no-cell {
+    text-align: center;
+    vertical-align: middle;
+  }
+  .yn-label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    cursor: pointer;
+    font-size: 11px;
+  }
+  .yn-label input[type=radio] {
+    accent-color: var(--blue);
+    width: 13px;
+    height: 13px;
+    cursor: pointer;
+  }
+  /* Print: hide radio buttons, show only selected checkmark */
+  @media print {
+    .yn-label input[type=radio] { display: none; }
+    .yn-label .yn-text { display: none; }
+    .yn-label.selected::after { content: "✓"; font-size: 15px; color: var(--blue); font-weight: 700; }
+    .yn-label:not(.selected)::after { content: ""; }
+  }
+
+  /* Drop-off + Purpose */
+  .info-row {
+    border: 1px solid var(--border);
+    border-top: none;
+    padding: 6px 10px;
+    font-size: 11px;
+    line-height: 1.55;
+    display: flex;
+    align-items: flex-start;
+    gap: 5px;
+  }
+  .purpose-row {
+    align-items: center;
+    padding: 8px 14px;
+    min-height: 38px;
+  }
+  .info-row .field-label {
+    font-weight: 700;
+    font-size: 11px;
+    white-space: nowrap;
+  }
+  .info-row .ris-input {
+    flex: 1;
+  }
+
+  /* Signature block */
+  .sig-block {
+    border: 1px solid var(--border);
+    border-top: none;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+  }
+  .sig-col {
+    border-right: 1px solid var(--border);
+    padding: 10px 10px 12px;
+    font-size: 11px;
+  }
+  .sig-col:last-child { border-right: none; }
+  .sig-header {
+    font-weight: 700;
+    font-size: 11px;
+    margin-bottom: 22px;
+    text-transform: uppercase;
+    letter-spacing: .03em;
+  }
+  .sig-line {
+    border-bottom: 1px solid #555;
+    height: 28px;
+    margin-bottom: 4px;
+  }
+  .sig-name-input {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    border: none;
+    border-bottom: 1px solid transparent;
+    outline: none;
+    background: transparent;
+    color: var(--text);
+    width: 100%;
+    padding: 0;
+  }
+  .sig-name-input:focus {
+    border-bottom-color: var(--blue);
+    background: #f0f4ff;
+  }
+  .sig-position {
+    font-size: 10px;
+    color: #444;
+    margin-top: 2px;
+    line-height: 1.4;
+  }
+  .sig-position-text {
+    font-family: 'Source Serif 4', serif;
+    font-size: 10px;
+    color: #444;
+    line-height: 1.4;
+  }
+  /* Show position on print */
+  @media print {
+    .sig-position { display: block !important; }
+    .sig-position-text { display: block !important; }
+    .sig-name-input { background: transparent !important; border-bottom-color: transparent !important; }
+  }
+  .sig-date-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 8px;
+  }
+  .sig-date-label {
+    font-size: 11px;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .sig-date-input {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    border: none;
+    border-bottom: 1px solid #555;
+    outline: none;
+    background: transparent;
+    color: var(--text);
+    flex: 1;
+    padding: 0 2px;
+  }
+  .sig-date-input:focus {
+    background: #f0f4ff;
+  }
+  @media print {
+    .sig-date-input { background: transparent !important; }
+    .sig-name-input { background: transparent !important; }
+  }
+
+  .issued-badge {
+    display: inline-block;
+    background: #1a7a3c;
+    color: white;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: .06em;
+    padding: 3px 8px;
+    border-radius: 3px;
+    text-transform: uppercase;
+  }
+
+  .ris.hidden { display: none; }
+
+  /* ── PRINT ── */
+  @media print {
+    body { background: white; padding: 0; }
+    .ris {
+      border: none;
+      box-shadow: none;
+      padding: 12mm 13mm 10mm;
+      margin: 0;
+      width: 210mm;
+      min-height: 297mm;
+    }
+    .ris.hidden { display: block !important; }
+    @page {
+      size: A4 portrait;
+      margin: 0;
+    }
+  }
+</style>
+</head>
+<body>
+
+<!-- CONTROLS -->
+<div class="controls screen-only">
+  <div class="controls-row">
+    <label for="schoolSelect">School:</label>
+    <select id="schoolSelect" onchange="onSchoolChange(this.value)">
+      <option value="all">— All Schools —</option>
+    </select>
+
+    <label for="risInput">RIS No.:</label>
+    <input type="text" id="risInput" class="input-field" placeholder="e.g. 2026-01-0046" value="2026-01-0046">
+
+    <label for="qtyInput">Quantity:</label>
+    <input type="number" id="qtyInput" class="qty-input" placeholder="e.g. 559" min="0">
+
+    <button class="btn btn-apply" onclick="applyChanges()">✔ Apply</button>
+  </div>
+
+  <hr class="divider">
+
+  <div class="controls-row">
+    <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#555;">
+      Showing: <strong id="showingLabel">—</strong>
+    </span>
+    <div style="flex:1"></div>
+    <button class="btn btn-all" onclick="showAll()">Show All</button>
+    <button class="btn btn-print" onclick="window.print()">🖨 Print / Save PDF</button>
+  </div>
+</div>
+
+<div class="ris-wrapper" id="risContainer"></div>
+
+<script>
+const schools = [
+  { id: "ayala-central",         name: "Ayala Central School",                    qty: 559  },
+  { id: "recodo-es",             name: "Recodo Elementary School",                qty: 415  },
+  { id: "cawit",                 name: "Cawit Elementary School",                 qty: 1067 },
+  { id: "sinunuc",               name: "Sinunuc Elementary School",               qty: 699  },
+  { id: "labuan",                name: "Labuan Central School",                   qty: 2245 },
+  { id: "patalon",               name: "Patalon Elementary School",               qty: 1030 },
+  { id: "talisayan",             name: "Talisayan Elementary School",             qty: 2002 },
+  { id: "baliwasan",             name: "Baliwasan Central School",                qty: 1991 },
+  { id: "pasonanca",             name: "Pasonanca Elementary School",             qty: 727  },
+  { id: "san-roque",             name: "San Roque Elementary School",             qty: 745  },
+  { id: "sta-maria",             name: "Sta. Maria Central School",               qty: 1090 },
+  { id: "cvd-jalon",             name: "Catalina Vda De Jalon Memorial School",   qty: 485  },
+  { id: "zamboanga-central",     name: "Zamboanga Central School",                qty: 665  },
+  { id: "sta-barbara",           name: "Sta. Barbara Central School",             qty: 701  },
+  { id: "tetuan-cs",             name: "Tetuan Central School",                   qty: 512  },
+  { id: "vitali",                name: "Vitali Central School",                   qty: 857  },
+  { id: "tagasilay",             name: "Tagasilay Elementary School",             qty: 513  },
+  { id: "tictapul",              name: "Tictapul Elementary School",              qty: 568  },
+  { id: "curuan",                name: "Curuan Central School",                   qty: 1130 },
+  { id: "buenavista",            name: "Buenavista Integrated School",            qty: 758  },
+  { id: "manicahan",             name: "Manicahan Central School",                qty: 1445 },
+  { id: "sangali",               name: "Sangali Elementary School",               qty: 1033 },
+  { id: "bunguiao",              name: "Bunguiao Elementary School",              qty: 351  },
+  { id: "mercedes",              name: "Mercedes Elementary School",              qty: 995  },
+  { id: "taluksangay",           name: "Taluksangay Elementary School",           qty: 636  },
+  { id: "culianan",              name: "Culianan Learning Center",                qty: 630  },
+  { id: "putik",                 name: "Putik Central School",                    qty: 694  },
+  { id: "boalan",                name: "Boalan Elementary School",                qty: 1661 },
+  { id: "tugbungan",             name: "Tugbungan Elementary School",             qty: 484  },
+  { id: "dongems",               name: "Don Gregorio Evangelista Memorial School",qty: 730  },
+  { id: "mampang",               name: "Mampang Elementary School",               qty: 488  },
+  { id: "talon-talon",           name: "Talon-Talon Central School",              qty: 488  },
+  { id: "arena-blanco-east",     name: "Arena Blanco East Elementary School",     qty: 1479 },
+];
+
+const schoolData = {};
+schools.forEach(s => { schoolData[s.id] = { qty: s.qty, risNo: "2026-01-0046" }; });
+
+const DESC = `Crackers (30-40g) with 100-180ml of Fruit Juice
+
+CRACKERS — Flavor: Plain/Any flavor, 30-40 gms per pack. Quality: Products received in good condition, no signs of damage in packs, no signs of holes, pest free and not expired. Packaging: Individually packed in food grade pouches with manufacturing Date, Expiration Date, and imprinted sign "DepEd SBFP – NOT FOR SALE". Expiration date at least 6 months from date of delivery. Minimum per Serving: Energy 120-150 kcal, Sat Fat 0-7g, Sugar <25g, Protein 3-4g, Sodium <200mg.
+
+JUICE — Serving Size: 100-180 ml. Received in good condition, no signs of damage, bulging/dents, not expired. Packaging: Individually packed in food-grade bottles with manufacturing and expiration dates and imprinted sign "DepEd SBFP – NOT FOR SALE". Expiration date at least 6 months from delivery. Minimum per Serving: Energy ≥100 Kcal, Sugar 10-25g, Vitamin C >20mg.`;
+
+const PURPOSE = "PROCUREMENT OF NUTRITIOUS FOOD PRODUCT (NFP) – CRACKERS WITH JUICE FOR THE SCHOOL-BASED FEEDING PROGRAM IMPLEMENTATION FOR SUMMER LEARNING 2026";
+
+const SIGNATORIES = {
+  requestedBy: { name: "ROWENA F. LUSAYA, RN", desig: "Nurse II / SBFP Focal Person\nHealth and Nutrition Section" },
+  approvedBy:  { name: "MARNIE J. AMPATIN",    desig: "Administrative Officer IV\nAsset Management Unit" },
+  issuedBy:    { name: "NASSER I. BISNO",       desig: "Administrative Aide I\nAsset Management Unit" },
+  receivedBy:  { name: "",                       desig: "" },
+};
+
+function buildRIS(s) {
+  const d = schoolData[s.id];
+  const qty = d.qty;
+  const risNo = d.risNo;
+  const uid = s.id;
+
+  return `
+  <div class="ris" id="${uid}" data-name="${s.name}">
+    <div class="appendix">Appendix 63</div>
+    <div class="ris-title"><h1>Requisition and Issue Slip</h1></div>
+
+    <div class="header-grid">
+      <div class="hcell full">
+        <span class="field-label">Entity Name:</span>
+        <input class="ris-input" value="DepEd, Division of Zamboanga City" style="min-width:180px;">
+        &nbsp;&nbsp;
+        <span class="field-label">Fund Cluster:</span>
+        <input class="ris-input" value="" style="min-width:80px;">
+      </div>
+      <div class="hcell">
+        <span class="field-label">Division:</span>
+        <input class="ris-input" value="">
+      </div>
+      <div class="hcell">
+        <span class="field-label">Responsibility Center Code:</span>
+        <input class="ris-input" value="" style="min-width:50px;">
+      </div>
+      <div class="hcell">
+        <span class="field-label">Office:</span>
+        <input class="ris-input" value="${s.name}">
+      </div>
+      <div class="hcell">
+        <span class="field-label">RIS No.:</span>
+        <input class="ris-input ris-no" value="${risNo}" style="font-weight:700;">
+      </div>
+    </div>
+
+    <table class="main-table">
+      <thead>
+        <tr>
+          <th colspan="4" style="text-align:center;">REQUISITION</th>
+          <th colspan="2" class="still-available-header" style="text-align:center;">Still Available?</th>
+          <th colspan="2" style="text-align:center;">ISSUE</th>
+        </tr>
+        <tr>
+          <th style="width:44px;">Stock No.</th>
+          <th style="width:44px;">Unit</th>
+          <th>Description</th>
+          <th style="width:52px;">Quantity</th>
+          <th style="width:34px;">Yes</th>
+          <th style="width:34px;">No</th>
+          <th style="width:52px;">Quantity</th>
+          <th style="width:68px;">Remarks</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="center"><input class="td-input" value="1"></td>
+          <td class="center"><input class="td-input" value="packs"></td>
+          <td class="desc"><div class="desc-content">${DESC.replace(/\n/g,'<br>')}</div></td>
+          <td class="center"><input class="td-input qty-display" value="${qty.toLocaleString()}" style="width:100%;"></td>
+          <td class="yes-no-cell">
+            <label class="yn-label selected" id="yes-lbl-${uid}">
+              <input type="radio" name="yn-${uid}" value="yes" checked onchange="handleYN('${uid}', 'yes')">
+              <span class="yn-text">✓</span>
+            </label>
+          </td>
+          <td class="yes-no-cell">
+            <label class="yn-label" id="no-lbl-${uid}">
+              <input type="radio" name="yn-${uid}" value="no" onchange="handleYN('${uid}', 'no')">
+              <span class="yn-text">✗</span>
+            </label>
+          </td>
+          <td class="center"><input class="td-input qty-display" value="${qty.toLocaleString()}" style="width:100%;"></td>
+          <td class="center"><input class="td-input" value="Issued" style="font-weight:600;color:#1a7a3c;"></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="info-row">
+      <span class="field-label">Drop Off:</span>
+      <input class="ris-input" value="${s.name}">
+    </div>
+    <div class="info-row purpose-row">
+      <span class="field-label">Purpose:</span>
+      <div class="purpose-text">${PURPOSE}</div>
+    </div>
+
+    <div class="sig-block">
+      ${['Requested by', 'Approved by', 'Issued by', 'Received by'].map((label, i) => {
+        const key = ['requestedBy','approvedBy','issuedBy','receivedBy'][i];
+        const sig = SIGNATORIES[key];
+        return `<div class="sig-col">
+          <div class="sig-header">${label}:</div>
+          <div class="sig-line"></div>
+          <input class="sig-name-input" value="${sig.name}" placeholder="Name">
+          <div class="sig-position">
+            <div class="sig-position-text">${sig.desig.replace(/\n/, '<br>')}</div>
+          </div>
+          <div class="sig-date-row">
+            <span class="sig-date-label">Date:</span>
+            <input class="sig-date-input" value="" placeholder="">
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+  </div>`;
+}
+
+function handleYN(uid, val) {
+  const yesLbl = document.getElementById('yes-lbl-' + uid);
+  const noLbl  = document.getElementById('no-lbl-'  + uid);
+  if (yesLbl) yesLbl.classList.toggle('selected', val === 'yes');
+  if (noLbl)  noLbl.classList.toggle('selected',  val === 'no');
+}
+
+// Populate select + render
+const sel = document.getElementById('schoolSelect');
+const container = document.getElementById('risContainer');
+const qtyInput = document.getElementById('qtyInput');
+const risInput = document.getElementById('risInput');
+const showingLabel = document.getElementById('showingLabel');
+
+schools.forEach(s => {
+  const opt = document.createElement('option');
+  opt.value = s.id;
+  opt.textContent = s.name;
+  sel.appendChild(opt);
+  container.insertAdjacentHTML('beforeend', buildRIS(s));
+});
+
+let currentSchoolId = schools[0].id;
+
+function onSchoolChange(val) {
+  currentSchoolId = val;
+  if (val !== 'all') {
+    const d = schoolData[val];
+    qtyInput.value = d.qty;
+    risInput.value = d.risNo;
+  } else {
+    qtyInput.value = '';
+    risInput.value = '';
+  }
+  document.querySelectorAll('.ris').forEach(el => {
+    el.classList.toggle('hidden', val !== 'all' && el.id !== val);
+  });
+  if (val === 'all') {
+    showingLabel.textContent = 'All Schools';
+  } else {
+    const s = schools.find(s => s.id === val);
+    showingLabel.textContent = s ? s.name : val;
+  }
+}
+
+function applyChanges() {
+  const val = sel.value;
+  const newRis = risInput.value.trim();
+  const newQty = parseInt(qtyInput.value, 10);
+
+  if (val === 'all') {
+    schools.forEach(s => {
+      if (newRis) schoolData[s.id].risNo = newRis;
+      if (!isNaN(newQty) && newQty >= 0) schoolData[s.id].qty = newQty;
+    });
+    container.innerHTML = '';
+    schools.forEach(s => container.insertAdjacentHTML('beforeend', buildRIS(s)));
+    document.querySelectorAll('.ris').forEach(el => el.classList.remove('hidden'));
+  } else {
+    if (newRis) schoolData[val].risNo = newRis;
+    if (!isNaN(newQty) && newQty >= 0) schoolData[val].qty = newQty;
+    const existing = document.getElementById(val);
+    const s = schools.find(s => s.id === val);
+    if (existing && s) {
+      const temp = document.createElement('div');
+      temp.innerHTML = buildRIS(s);
+      existing.replaceWith(temp.firstElementChild);
+    }
+  }
+}
+
+function showAll() {
+  sel.value = 'all';
+  onSchoolChange('all');
+}
+
+// Default: show first school
+sel.value = schools[0].id;
+onSchoolChange(schools[0].id);
+qtyInput.value = schoolData[schools[0].id].qty;
+risInput.value = schoolData[schools[0].id].risNo;
+showingLabel.textContent = schools[0].name;
+</script>
+</body>
+</html>
